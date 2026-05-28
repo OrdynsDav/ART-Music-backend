@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { ZodError } from 'zod';
+import { config } from './config.js';
 import { registerYandex } from './plugins/yandex.js';
 import { YandexMusicApiError } from './yandex/client.js';
 import { tracksRoutes } from './routes/tracks.js';
@@ -12,7 +13,38 @@ import { radioRoutes } from './routes/radio.js';
 export async function buildApp() {
   const app = Fastify({ logger: true });
 
-  await app.register(cors, { origin: true });
+  await app.register(cors, {
+    origin: (origin, callback) => {
+      if (config.corsAllowAll || !origin) {
+        callback(null, true);
+        return;
+      }
+      if (config.corsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`CORS: origin not allowed: ${origin}`), false);
+    },
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Range',
+      'Origin',
+    ],
+    exposedHeaders: [
+      'Content-Range',
+      'Accept-Ranges',
+      'Content-Length',
+      'Content-Type',
+    ],
+    credentials: true,
+    preflight: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
+
   await registerYandex(app);
 
   app.setErrorHandler((error, _request, reply) => {

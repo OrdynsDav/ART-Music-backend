@@ -22,7 +22,7 @@ npm install
 npm run dev
 ```
 
-Сервер: `http://localhost:3000`  
+Сервер: `http://localhost:3001` (порт **3001**, чтобы не конфликтовать с Neutralino на 3000)  
 Список маршрутов: `GET /api`
 
 ## Авторизация
@@ -36,24 +36,24 @@ npm run dev
 
 ```bash
 # Трек (id в формате trackId:albumId или только trackId)
-curl -H "Authorization: OAuth TOKEN" http://localhost:3000/api/tracks/10994777:1193829
+curl -H "Authorization: OAuth TOKEN" http://localhost:3001/api/tracks/10994777:1193829
 
 # Поток в плеер
 curl -H "Authorization: OAuth TOKEN" -o track.mp3 \
-  http://localhost:3000/api/tracks/10994777:1193829/stream
+  http://localhost:3001/api/tracks/10994777:1193829/stream
 
 # Альбом с треками
-curl -H "Authorization: OAuth TOKEN" http://localhost:3000/api/albums/1193829
+curl -H "Authorization: OAuth TOKEN" http://localhost:3001/api/albums/1193829
 
 # Плейлист (userId + kind из URL music.yandex.ru)
-curl -H "Authorization: OAuth TOKEN" http://localhost:3000/api/playlists/123456/3
+curl -H "Authorization: OAuth TOKEN" http://localhost:3001/api/playlists/123456/3
 
 # Артист (brief-info — полная страница)
-curl -H "Authorization: OAuth TOKEN" http://localhost:3000/api/artists/3121
+curl -H "Authorization: OAuth TOKEN" http://localhost:3001/api/artists/3121
 
 # «Моя волна»
 curl -X POST -H "Authorization: OAuth TOKEN" \
-  http://localhost:3000/api/radio/stations/user:onyourwave/start
+  http://localhost:3001/api/radio/stations/user:onyourwave/start
 ```
 
 ### Радио: типичный цикл
