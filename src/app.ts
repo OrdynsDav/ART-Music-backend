@@ -9,6 +9,10 @@ import { albumsRoutes } from './routes/albums.js';
 import { playlistsRoutes } from './routes/playlists.js';
 import { artistsRoutes } from './routes/artists.js';
 import { radioRoutes } from './routes/radio.js';
+import { catalogRoutes } from './routes/catalog.js';
+import { searchRoutes } from './routes/search.js';
+import { accountRoutes } from './routes/account.js';
+import { coversRoutes } from './routes/covers.js';
 
 export async function buildApp() {
   const app = Fastify({ logger: true });
@@ -79,13 +83,45 @@ export async function buildApp() {
       },
       albums: {
         'GET /api/albums/:albumId': 'Album (?withTracks=false for metadata only)',
+        'POST /api/albums': 'Batch albums (body: { albumIds })',
       },
       playlists: {
         'GET /api/playlists/:userId/:kind': 'Playlist with tracks',
+        'GET /api/users/:userId/playlists': 'User playlist list',
+        'POST /api/users/:userId/playlists': 'Playlists by kinds (body: { kinds })',
+        'GET /api/playlists?ids=uid:kind,...': 'Playlists by ids',
+        'POST /api/playlists/batch': 'Short playlists (body: { playlistIds })',
+        'GET /api/playlists/uuid/:uuid': 'Playlist by UUID',
       },
       artists: {
         'GET /api/artists/:artistId': 'Artist (?brief=false for short card)',
         'POST /api/artists': 'Batch artists (body: { artistIds })',
+        'GET /api/artists/:artistId/tracks': 'Artist tracks',
+        'GET /api/artists/:artistId/albums': 'Artist albums',
+        'GET /api/artists/:artistId/similar': 'Similar artists',
+      },
+      catalog: {
+        'GET /api/genres': 'Music genres',
+        'GET /api/tags/:tagId': 'Tag / mix playlists',
+        'GET /api/metatags': 'Metatags tree (moods, activities)',
+        'GET /api/metatags/:id': 'Metatag page',
+        'GET /api/metatags/:id/albums|artists|playlists': 'Metatag lists',
+        'GET /api/landing': 'Landing blocks',
+        'GET /api/landing/chart': 'Chart (?type=russia|world)',
+        'GET /api/landing/new-releases': 'New albums',
+        'GET /api/landing/new-playlists': 'New playlists',
+        'GET /api/feed': 'Smart playlists feed',
+      },
+      search: {
+        'GET /api/search': 'Search (?q=&type=all|track|album|artist|playlist)',
+        'GET /api/search/suggest': 'Search suggestions',
+      },
+      account: {
+        'GET /api/account': 'Current account (uid, plus, …)',
+        'GET /api/me/tracks': 'My liked tracks («Мои треки»). ?full=true for full metadata',
+      },
+      covers: {
+        'GET /api/covers/resolve': 'coverUri → URL (?uri=&size=400x400, ?redirect=true)',
       },
       radio: {
         'GET /api/radio/stations': 'All rotor stations',
@@ -105,6 +141,10 @@ export async function buildApp() {
   await app.register(playlistsRoutes);
   await app.register(artistsRoutes);
   await app.register(radioRoutes);
+  await app.register(catalogRoutes);
+  await app.register(searchRoutes);
+  await app.register(accountRoutes);
+  await app.register(coversRoutes);
 
   return app;
 }

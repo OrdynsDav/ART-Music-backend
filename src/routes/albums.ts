@@ -1,4 +1,9 @@
 import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+
+const albumIdsBody = z.object({
+  albumIds: z.array(z.string()).min(1),
+});
 
 export async function albumsRoutes(app: FastifyInstance) {
   app.get<{ Params: { albumId: string } }>(
@@ -15,4 +20,11 @@ export async function albumsRoutes(app: FastifyInstance) {
       return { album: albums[0] ?? null, albums };
     },
   );
+
+  app.post('/api/albums', async (request) => {
+    const body = albumIdsBody.parse(request.body);
+    const client = app.createYandexClient(request);
+    const albums = await client.getAlbum(body.albumIds);
+    return { albums };
+  });
 }

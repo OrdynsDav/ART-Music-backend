@@ -192,8 +192,10 @@ export class YandexMusicClient {
 
   // ——— Albums ———
 
-  async getAlbum(albumId: string | number) {
-    const ids = Array.isArray(albumId) ? albumId : [String(albumId)];
+  async getAlbum(albumIds: string | number | string[]) {
+    const ids = Array.isArray(albumIds)
+      ? albumIds
+      : [String(albumIds)];
     const body = new URLSearchParams();
     for (const id of ids) body.append('album-ids', id);
     return this.request<unknown[]>('POST', '/albums', { body });
@@ -212,6 +214,38 @@ export class YandexMusicClient {
     );
   }
 
+  async getUserPlaylistsList(userId: string | number) {
+    return this.request<unknown[]>('GET', `/users/${userId}/playlists/list`);
+  }
+
+  async getUserPlaylistsByKinds(
+    userId: string | number,
+    kinds: Array<string | number>,
+  ) {
+    const body = new URLSearchParams();
+    for (const kind of kinds) body.append('kinds', String(kind));
+    return this.request<unknown[]>('POST', `/users/${userId}/playlists`, {
+      body,
+    });
+  }
+
+  async getPlaylistsByIds(playlistIds: string | string[]) {
+    const ids = Array.isArray(playlistIds) ? playlistIds.join(',') : playlistIds;
+    return this.request<unknown>('GET', '/playlists', {
+      searchParams: { playlistIds: ids },
+    });
+  }
+
+  async getPlaylistsListShort(playlistIds: string[]) {
+    const body = new URLSearchParams();
+    for (const id of playlistIds) body.append('playlist-ids', id);
+    return this.request<unknown[]>('POST', '/playlists/list', { body });
+  }
+
+  async getPlaylistByUuid(playlistUuid: string) {
+    return this.request<unknown>('GET', `/playlist/${playlistUuid}`);
+  }
+
   // ——— Artists ———
 
   async getArtists(artistIds: string[]) {
@@ -222,6 +256,237 @@ export class YandexMusicClient {
 
   async getArtistBriefInfo(artistId: string | number) {
     return this.request<unknown>('GET', `/artists/${artistId}/brief-info`);
+  }
+
+  async getArtistTracks(
+    artistId: string | number,
+    page = 0,
+    pageSize = 20,
+  ) {
+    return this.request<unknown>('GET', `/artists/${artistId}/tracks`, {
+      searchParams: { page: String(page), 'page-size': String(pageSize) },
+    });
+  }
+
+  async getArtistDirectAlbums(
+    artistId: string | number,
+    options?: { page?: number; pageSize?: number; sortBy?: string },
+  ) {
+    const page = options?.page ?? 0;
+    const pageSize = options?.pageSize ?? 20;
+    return this.request<unknown>(
+      'GET',
+      `/artists/${artistId}/direct-albums`,
+      {
+        searchParams: {
+          page: String(page),
+          'page-size': String(pageSize),
+          'sort-by': options?.sortBy ?? 'year',
+        },
+      },
+    );
+  }
+
+  async getArtistSimilar(artistId: string | number) {
+    return this.request<unknown>('GET', `/artists/${artistId}/similar`);
+  }
+
+  // ——— Genres, tags, metatags ———
+
+  async getGenres() {
+    return this.request<unknown[]>('GET', '/genres');
+  }
+
+  async getTag(tagId: string) {
+    return this.request<unknown>('GET', `/tags/${apiPath(tagId)}/playlist-ids`);
+  }
+
+  async getMetatags() {
+    return this.request<unknown>('GET', '/landing3/metatags');
+  }
+
+  async getMetatag(
+    metatagId: string,
+    params?: {
+      tracksCount?: number;
+      artistsCount?: number;
+      albumsCount?: number;
+      playlistsCount?: number;
+      tracksSortBy?: string;
+      albumsSortBy?: string;
+    },
+  ) {
+    const searchParams: Record<string, string | undefined> = {};
+    if (params?.tracksCount !== undefined) {
+      searchParams.tracksCount = String(params.tracksCount);
+    }
+    if (params?.artistsCount !== undefined) {
+      searchParams.artistsCount = String(params.artistsCount);
+    }
+    if (params?.albumsCount !== undefined) {
+      searchParams.albumsCount = String(params.albumsCount);
+    }
+    if (params?.playlistsCount !== undefined) {
+      searchParams.playlistsCount = String(params.playlistsCount);
+    }
+    if (params?.tracksSortBy) searchParams.tracksSortBy = params.tracksSortBy;
+    if (params?.albumsSortBy) searchParams.albumsSortBy = params.albumsSortBy;
+    return this.request<unknown>('GET', `/metatags/${apiPath(metatagId)}`, {
+      searchParams,
+    });
+  }
+
+  async getMetatagAlbums(
+    metatagId: string,
+    options?: { offset?: number; limit?: number; sortBy?: string; period?: string },
+  ) {
+    const searchParams: Record<string, string | undefined> = {
+      offset: String(options?.offset ?? 0),
+      limit: String(options?.limit ?? 25),
+    };
+    if (options?.sortBy) searchParams.sortBy = options.sortBy;
+    if (options?.period) searchParams.period = options.period;
+    return this.request<unknown>(
+      'GET',
+      `/metatags/${apiPath(metatagId)}/albums`,
+      { searchParams },
+    );
+  }
+
+  async getMetatagArtists(
+    metatagId: string,
+    options?: {
+      period?: string;
+      offset?: number;
+      limit?: number;
+      sortBy?: string;
+    },
+  ) {
+    const searchParams: Record<string, string | undefined> = {
+      period: options?.period ?? 'week',
+      offset: String(options?.offset ?? 0),
+      limit: String(options?.limit ?? 25),
+    };
+    if (options?.sortBy) searchParams.sortBy = options.sortBy;
+    return this.request<unknown>(
+      'GET',
+      `/metatags/${apiPath(metatagId)}/artists`,
+      { searchParams },
+    );
+  }
+
+  async getMetatagPlaylists(
+    metatagId: string,
+    options?: { offset?: number; limit?: number; sortBy?: string },
+  ) {
+    const searchParams: Record<string, string | undefined> = {
+      offset: String(options?.offset ?? 0),
+      limit: String(options?.limit ?? 25),
+    };
+    if (options?.sortBy) searchParams.sortBy = options.sortBy;
+    return this.request<unknown>(
+      'GET',
+      `/metatags/${apiPath(metatagId)}/playlists`,
+      { searchParams },
+    );
+  }
+
+  // ——— Landing & feed ———
+
+  async getLanding(blocks: string | string[]) {
+    const value = Array.isArray(blocks) ? blocks.join(',') : blocks;
+    return this.request<unknown>('GET', '/landing3', {
+      searchParams: { blocks: value },
+    });
+  }
+
+  async getChart(chartType: 'russia' | 'world' | '' = '') {
+    const path =
+      chartType && chartType.length > 0
+        ? `/landing3/chart/${chartType}`
+        : '/landing3/chart';
+    return this.request<unknown>('GET', path);
+  }
+
+  async getNewReleases() {
+    return this.request<unknown>('GET', '/landing3/new-releases');
+  }
+
+  async getNewPlaylistsLanding() {
+    return this.request<unknown>('GET', '/landing3/new-playlists');
+  }
+
+  async getPodcastsLanding() {
+    return this.request<unknown>('GET', '/landing3/podcasts');
+  }
+
+  async getFeed() {
+    return this.request<unknown>('GET', '/feed');
+  }
+
+  // ——— Search ———
+
+  async search(
+    text: string,
+    options?: {
+      type?: string;
+      page?: number;
+      nocorrect?: boolean;
+      playlistInBest?: boolean;
+    },
+  ) {
+    return this.request<unknown>('GET', '/search', {
+      searchParams: {
+        text,
+        type: options?.type ?? 'all',
+        page: String(options?.page ?? 0),
+        nocorrect: String(options?.nocorrect ?? false),
+        'playlist-in-best': String(options?.playlistInBest ?? true),
+      },
+    });
+  }
+
+  async searchSuggest(part: string) {
+    return this.request<unknown>('GET', '/search/suggest', {
+      searchParams: { part },
+    });
+  }
+
+  // ——— Account & library ———
+
+  async getAccountStatus() {
+    return this.request<unknown>('GET', '/account/status');
+  }
+
+  async resolveAccountUid(): Promise<number> {
+    const status = (await this.getAccountStatus()) as {
+      account?: { uid?: number };
+    };
+    const uid = status?.account?.uid;
+    if (uid == null) {
+      throw new YandexMusicApiError('Cannot resolve account uid', 401);
+    }
+    return uid;
+  }
+
+  /** «Мои треки» / «Мне нравится» — лайкнутые треки пользователя */
+  async getUserLikedTracks(
+    userId: string | number,
+    ifModifiedSinceRevision = 0,
+  ) {
+    const result = await this.request<{
+      library?: {
+        tracks?: unknown[];
+        revision?: number;
+        uid?: number;
+        playlistUuid?: string;
+      };
+    }>('GET', `/users/${userId}/likes/tracks`, {
+      searchParams: {
+        'if-modified-since-revision': String(ifModifiedSinceRevision),
+      },
+    });
+    return result?.library ?? { tracks: [], revision: 0 };
   }
 
   // ——— Radio (rotor) ———
