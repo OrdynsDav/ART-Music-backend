@@ -7,6 +7,34 @@ import { getSignRequest } from './sign.js';
 
 const BASE_URL = 'https://api.music.yandex.net';
 
+function yandexClipEmbedUrl(playerId: string | number): string {
+  return `https://frontend.vh.yandex.ru/player/${playerId}?no_ad=true&service=ya-video&from=ya-music-android`;
+}
+
+function normalizeTrackClip(raw: Record<string, unknown>) {
+  const playerId =
+    raw.playerId ?? raw.providerVideoId ?? raw.provider_video_id;
+  const embedUrl =
+    raw.embedUrl ??
+    raw.embed_url ??
+    (playerId != null ? yandexClipEmbedUrl(String(playerId)) : undefined);
+
+  return {
+    clipId: raw.clipId,
+    title: raw.title,
+    thumbnail: raw.thumbnail ?? raw.cover,
+    previewUrl: raw.previewUrl,
+    duration: raw.duration,
+    playerId,
+    uuid: raw.uuid,
+    embedUrl,
+    url: raw.url,
+    provider: raw.provider,
+    trackIds: raw.trackIds,
+    artists: raw.artists,
+  };
+}
+
 /** Сегмент пути с `:` (например `user:onyourwave`) нужно кодировать. */
 function apiPath(...segments: string[]): string {
   return segments.map((s) => encodeURIComponent(s)).join('/');
@@ -188,6 +216,45 @@ export class YandexMusicClient {
         sign,
       },
     });
+  }
+
+  async getTrackSupplement(trackId: string) {
+    return this.request<unknown>(
+      'GET',
+      `/tracks/${apiPath(trackId)}/supplement`,
+    );
+  }
+
+  async getClipsByIds(clipIds: Array<string | number>) {
+    if (clipIds.length === 0) return [];
+    return this.request<Record<string, unknown>[]>('GET', '/clips', {
+      searchParams: { 'clip-ids': clipIds.map(String).join(',') },
+    });
+  }
+
+  /** Клипы трека: supplement.clips → supplement.videos → track.clipIds */
+  async getTrackClips(trackId: string) {
+    const supplement = (await this.getTrackSupplement(trackId)) as
+      | Record<string, unknown>
+      | null
+      | undefined;
+
+    const fromSupplement = supplement?.clips ?? supplement?.videos;
+    if (Array.isArray(fromSupplement) && fromSupplement.length > 0) {
+      return fromSupplement.map((item) =>
+        normalizeTrackClip(item as Record<string, unknown>),
+      );
+    }
+
+    const tracks = await this.getTracks([trackId]);
+    const track = tracks[0] as Record<string, unknown> | undefined;
+    const clipIds = track?.clipIds;
+    if (!Array.isArray(clipIds) || clipIds.length === 0) return [];
+
+    const clips = await this.getClipsByIds(
+      clipIds.filter((id): id is string | number => id != null),
+    );
+    return clips.map((item) => normalizeTrackClip(item));
   }
 
   // ——— Albums ———

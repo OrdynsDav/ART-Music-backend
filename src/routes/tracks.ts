@@ -97,4 +97,13 @@ export async function tracksRoutes(app: FastifyInstance) {
       return { lyrics };
     },
   );
+
+  app.get<{ Params: { trackId: string } }>(
+    '/api/tracks/:trackId/clips',
+    async (request) => {
+      const client = app.createYandexClient(request);
+      const clips = await client.getTrackClips(request.params.trackId);
+      return { clips };
+    },
+  );
 }

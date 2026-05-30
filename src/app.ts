@@ -79,7 +79,8 @@ export async function buildApp() {
         'GET /api/tracks/:trackId': 'Full track info',
         'GET /api/tracks/:trackId/stream': 'Audio stream (proxy)',
         'GET /api/tracks/:trackId/stream-url': 'Direct MP3 URL (~1 min TTL)',
-        'GET /api/tracks/:trackId/lyrics': 'Lyrics',
+        'GET /api/tracks/:trackId/lyrics': 'Lyrics (separate request)',
+        'GET /api/tracks/:trackId/clips': 'Video clips (separate request)',
       },
       albums: {
         'GET /api/albums/:albumId': 'Album (?withTracks=false for metadata only)',
