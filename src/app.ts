@@ -125,7 +125,7 @@ export async function buildApp() {
         'GET /api/covers/resolve': 'coverUri → URL (?uri=&size=400x400, ?redirect=true)',
       },
       radio: {
-        'GET /api/radio/stations': 'All rotor stations',
+        'GET /api/radio/stations': 'Rotor stations (?offset=0&limit=70, paginated)',
         'GET /api/radio/dashboard': 'Recommended stations',
         'GET /api/radio/stations/:stationId': 'Station info',
         'GET /api/radio/stations/:stationId/tracks': 'Station track queue',

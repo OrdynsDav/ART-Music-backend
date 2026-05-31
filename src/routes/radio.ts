@@ -1,5 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { numQuery, strQuery } from '../utils/query.js';
+import {
+  DEFAULT_STATIONS_PAGE_SIZE,
+  getRotorStationsPage,
+  MAX_STATIONS_PAGE_SIZE,
+} from '../utils/rotor-stations-cache.js';
 
 const feedbackBody = z.object({
   type: z.enum(['radioStarted', 'trackStarted', 'trackFinished', 'skip']),
@@ -12,9 +18,15 @@ const feedbackBody = z.object({
 export async function radioRoutes(app: FastifyInstance) {
   app.get('/api/radio/stations', async (request) => {
     const client = app.createYandexClient(request);
-    const language = (request.query as { language?: string }).language;
-    const stations = await client.getRotorStationsList(language);
-    return { stations };
+    const q = request.query as Record<string, unknown>;
+    return getRotorStationsPage(client, {
+      language: strQuery(q.language),
+      offset: numQuery(q.offset, 0),
+      limit: Math.min(
+        Math.max(numQuery(q.limit, DEFAULT_STATIONS_PAGE_SIZE), 1),
+        MAX_STATIONS_PAGE_SIZE,
+      ),
+    });
   });
 
   app.get('/api/radio/dashboard', async (request) => {

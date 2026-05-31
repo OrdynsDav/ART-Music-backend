@@ -81,6 +81,14 @@ export class YandexMusicClient {
     };
   }
 
+  get language(): string {
+    return this.options.language ?? 'ru';
+  }
+
+  rotorStationsCacheKey(language?: string): string {
+    return `${this.options.token}:${language ?? this.language}`;
+  }
+
   private buildUrl(
     path: string,
     searchParams?: Record<string, string | undefined>,
