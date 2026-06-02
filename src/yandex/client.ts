@@ -564,6 +564,53 @@ export class YandexMusicClient {
     return result?.library ?? { tracks: [], revision: 0 };
   }
 
+  private likeIdsBody(
+    objectType: 'track' | 'artist' | 'album' | 'playlist',
+    ids: string[],
+  ): URLSearchParams {
+    const body = new URLSearchParams();
+    for (const id of ids) {
+      body.append(`${objectType}-ids`, id);
+    }
+    return body;
+  }
+
+  /** Добавить трек(и) в «Мне нравится» */
+  async likeTracks(userId: string | number, trackIds: string[]) {
+    return this.request<{ revision?: number }>(
+      'POST',
+      `/users/${userId}/likes/tracks/add-multiple`,
+      { body: this.likeIdsBody('track', trackIds) },
+    );
+  }
+
+  /** Убрать трек(и) из «Мне нравится» */
+  async unlikeTracks(userId: string | number, trackIds: string[]) {
+    return this.request<unknown>(
+      'POST',
+      `/users/${userId}/likes/tracks/remove`,
+      { body: this.likeIdsBody('track', trackIds) },
+    );
+  }
+
+  /** Добавить альбом(ы) в «Мне нравится» */
+  async likeAlbums(userId: string | number, albumIds: string[]) {
+    return this.request<unknown>(
+      'POST',
+      `/users/${userId}/likes/albums/add-multiple`,
+      { body: this.likeIdsBody('album', albumIds) },
+    );
+  }
+
+  /** Добавить исполнителя(ей) в «Мне нравится» */
+  async likeArtists(userId: string | number, artistIds: string[]) {
+    return this.request<unknown>(
+      'POST',
+      `/users/${userId}/likes/artists/add-multiple`,
+      { body: this.likeIdsBody('artist', artistIds) },
+    );
+  }
+
   // ——— Radio (rotor) ———
 
   async getRotorStationsList(language?: string) {
