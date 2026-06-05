@@ -21,6 +21,19 @@ export function renderOAuthResultPage(options: {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ART Music — вход</title>
   <style>
+  :root {
+  --font-sans: "Roboto", system-ui, sans-serif;
+	--background: #302e2c;
+	--foreground: #e8e5e0;
+	--card: #353330;
+	--card-foreground: #e8e5e0;
+	--popover: #302e2c;
+	--popover-foreground: #e8e5e0;
+	--primary: #c8874e;
+	--primary-foreground: #1f1c19;
+	--secondary: #353330;
+	--secondary-foreground: #e8e5e0;
+  }
     body {
       margin: 0;
       min-height: 100vh;
@@ -38,7 +51,7 @@ export function renderOAuthResultPage(options: {
       border: 1px solid #2a2a32;
       text-align: center;
     }
-    a { color: #ff6b4a; }
+    a { color: var(--primary); }
     .error { color: #ff6b6b; }
     .success { color: #7ee787; }
   </style>

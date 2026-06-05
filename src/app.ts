@@ -148,7 +148,8 @@ export async function buildApp() {
         'GET /api/metatags/:id/albums|artists|playlists': 'Metatag lists',
         'GET /api/landing': 'Landing blocks',
         'GET /api/landing/chart': 'Chart (?type=russia|world)',
-        'GET /api/landing/new-releases': 'New albums',
+        'GET /api/landing/new-releases':
+          'New albums (?offset=0&limit=10, paginated)',
         'GET /api/landing/new-playlists': 'New playlists',
         'GET /api/feed': 'Smart playlists feed',
       },

@@ -89,6 +89,10 @@ export class YandexMusicClient {
     return `${this.options.token}:${language ?? this.language}`;
   }
 
+  newReleasesCacheKey(): string {
+    return `${this.options.token}:${this.language}`;
+  }
+
   private buildUrl(
     path: string,
     searchParams?: Record<string, string | undefined>,

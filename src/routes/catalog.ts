@@ -1,4 +1,9 @@
 import type { FastifyInstance } from 'fastify';
+import {
+  DEFAULT_NEW_RELEASES_PAGE_SIZE,
+  getNewReleasesPage,
+  MAX_NEW_RELEASES_PAGE_SIZE,
+} from '../utils/new-releases-cache.js';
 import { numQuery, strQuery } from '../utils/query.js';
 
 export async function catalogRoutes(app: FastifyInstance) {
@@ -107,9 +112,15 @@ export async function catalogRoutes(app: FastifyInstance) {
   });
 
   app.get('/api/landing/new-releases', async (request) => {
+    const q = request.query as Record<string, unknown>;
     const client = app.createYandexClient(request);
-    const releases = await client.getNewReleases();
-    return { releases };
+    return getNewReleasesPage(client, {
+      offset: numQuery(q.offset, 0),
+      limit: Math.min(
+        Math.max(numQuery(q.limit, DEFAULT_NEW_RELEASES_PAGE_SIZE), 1),
+        MAX_NEW_RELEASES_PAGE_SIZE,
+      ),
+    });
   });
 
   app.get('/api/landing/new-playlists', async (request) => {
