@@ -15,6 +15,7 @@ import {
   accountFromStatus,
   clearSessionCookie,
   setSessionCookie,
+  type AuthSession,
 } from '../auth/session.js';
 import { config } from '../config.js';
 import { YandexMusicClient, YandexMusicApiError } from '../yandex/client.js';
@@ -41,6 +42,15 @@ function publicUser(session: {
     uid: session.uid,
     login: session.login,
     displayName: session.displayName,
+  };
+}
+
+/** Ответ poll для десктопа: токен нужен в Authorization (cookie в Neutralino часто не сохраняется). */
+function desktopPollSuccess(session: AuthSession) {
+  return {
+    status: 'success' as const,
+    user: publicUser(session),
+    accessToken: session.token,
   };
 }
 
@@ -293,10 +303,7 @@ export async function authRoutes(app: FastifyInstance) {
       }
 
       setSessionCookie(reply, session);
-      return {
-        status: 'success',
-        user: publicUser(session),
-      };
+      return desktopPollSuccess(session);
     }
 
     if (!entry.deviceCode) {
@@ -314,10 +321,7 @@ export async function authRoutes(app: FastifyInstance) {
       const session = await createSessionFromToken(accountToken, reply);
       completeDesktopTicket(ticket, session);
 
-      return {
-        status: 'success',
-        user: publicUser(session),
-      };
+      return desktopPollSuccess(session);
     } catch (e) {
       if (e instanceof DeviceAuthError) {
         return reply.status(401).send({
